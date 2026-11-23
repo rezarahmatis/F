@@ -29,7 +29,23 @@ jobs:
 
       - name: Restore
         run: dotnet restore src/NEREA.App/NEREA.App.csproj -r win-x64
+      - name: Auto-fix HLSL reserved keywords
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path . -Recurse -Include *.hlsl,*.hlsli -File
 
+          foreach ($file in $files) {
+              $text = Get-Content $file.FullName -Raw
+              $original = $text
+
+              # Fix HLSL reserved keyword: "pass"
+              $text = [regex]::Replace($text, '\bpass\b', 'drawPass')
+
+              if ($text -ne $original) {
+                  Set-Content -Path $file.FullName -Value $text -NoNewline
+                  Write-Host "Auto-fixed: $($file.FullName)"
+              }
+          }
       - name: Validate HLSL shaders (FXC from the Windows SDK build tools)
         shell: pwsh
         run: ./tools/validate-shaders.ps1
