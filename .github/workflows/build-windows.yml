@@ -27,8 +27,6 @@ jobs:
         shell: pwsh
         run: ./tools/validate-project.ps1
 
-      - name: Restore
-        run: dotnet restore src/NEREA.App/NEREA.App.csproj -r win-x64
       - name: Auto-fix HLSL reserved keywords
         shell: pwsh
         run: |
@@ -46,6 +44,7 @@ jobs:
                   Write-Host "Auto-fixed: $($file.FullName)"
               }
           }
+
       - name: Validate HLSL shaders (FXC from the Windows SDK build tools)
         shell: pwsh
         run: ./tools/validate-shaders.ps1
@@ -53,14 +52,29 @@ jobs:
       - name: Headless self-test (content, simulation, audio analysis, library, persistence)
         run: dotnet run --project tests/NEREA.Smoke/NEREA.Smoke.csproj -c Release
 
+      - name: Restore App (win-x64)
+        run: dotnet restore src/NEREA.App/NEREA.App.csproj -r win-x64
+
       - name: Build
-        run: dotnet build src/NEREA.App/NEREA.App.csproj -c Release -r win-x64 --no-restore
+        shell: pwsh
+        run: |
+          dotnet build src/NEREA.App/NEREA.App.csproj -c Release -r win-x64 --no-restore
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "=== XamlCompiler Detailed Output ==="
+            Get-ChildItem -Path "src/NEREA.App/obj" -Filter "output.json" -Recurse | ForEach-Object {
+              Get-Content $_.FullName
+            }
+            exit 1
+          }
 
       - name: Publish (self-contained, win-x64)
         run: >
           dotnet publish src/NEREA.App/NEREA.App.csproj
           -c Release -r win-x64 --self-contained true
-          -p:PublishReadyToRun=false -p:DebugType=none
+          -p:WindowsPackageType=None
+          -p:WindowsAppSDKSelfContained=true
+          -p:PublishReadyToRun=false
+          -p:DebugType=none
           -o publish/NEREA
 
       - name: Package zip
@@ -70,8 +84,10 @@ jobs:
       - name: Build installer (Inno Setup)
         shell: pwsh
         run: |
-          choco install innosetup -y --no-progress
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
           & $iscc "/DSourceDir=$PWD\publish\NEREA" "/DOutputDir=$PWD" "installer\NEREA.iss"
 
       - name: Upload zip
