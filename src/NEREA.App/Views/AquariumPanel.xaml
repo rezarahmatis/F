@@ -1,0 +1,115 @@
+<UserControl
+    x:Class="NEREA.App.Views.AquariumPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NEREA.App"
+    xmlns:core="using:NEREA.Core.Models"
+    xmlns:vm="using:NEREA.App.ViewModels">
+
+    <Border Background="{ThemeResource NereaPanelBrush}" BorderBrush="{ThemeResource NereaPanelEdgeBrush}"
+            BorderThickness="1" CornerRadius="16" Padding="20,16,20,14">
+        <Grid RowSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="Aquarium" Style="{StaticResource PanelTitle}" />
+                <TextBlock Text="{x:Bind ViewModel.WorldName, Mode=OneWay}" FontSize="12" Opacity="0.6" />
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                <Button Content="Animals" Click="ShowSpecies_Click" />
+                <Button Content="Saved aquariums" Click="ShowSaved_Click" />
+            </StackPanel>
+
+            <!-- Species editor -->
+            <Grid Grid.Row="2" RowSpacing="8" Visibility="{x:Bind local:Fn.VisInv(ViewModel.ShowSaved), Mode=OneWay}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Header="Atmosphere" ItemsSource="{x:Bind ViewModel.MoodNames}" SelectedIndex="{x:Bind ViewModel.MoodIndex, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch" />
+                    <ComboBox Grid.Column="1" Header="Species" ItemsSource="{x:Bind ViewModel.CategoryNames}"
+                              SelectedIndex="{x:Bind ViewModel.CategoryIndex, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                </Grid>
+                <Grid Grid.Row="1">
+                    <TextBlock Text="{x:Bind ViewModel.TotalText, Mode=OneWay}" FontSize="12" Opacity="0.6" VerticalAlignment="Center" />
+                    <HyperlinkButton Content="Reset to default" Command="{x:Bind ViewModel.ResetPopulationCommand}" HorizontalAlignment="Right"
+                                     Padding="0" FontSize="12" />
+                </Grid>
+                <ListView Grid.Row="2" ItemsSource="{x:Bind ViewModel.Species, Mode=OneWay}" SelectionMode="None"
+                          AutomationProperties.Name="Species">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SpeciesRow">
+                            <Grid Padding="2,4" ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Name}" FontSize="14" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{x:Bind Category}" FontSize="11" Opacity="0.55" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Command="{x:Bind DecreaseCommand}" Content="–" Width="30" Height="30" Padding="0"
+                                        AutomationProperties.Name="Fewer" />
+                                <TextBlock Grid.Column="2" Text="{x:Bind Count, Mode=OneWay}" Width="26" TextAlignment="Center"
+                                           VerticalAlignment="Center" />
+                                <Button Grid.Column="3" Command="{x:Bind IncreaseCommand}" Content="+" Width="30" Height="30" Padding="0"
+                                        AutomationProperties.Name="More" />
+                                <ToggleSwitch Grid.Column="4" IsOn="{x:Bind Enabled, Mode=TwoWay}" OnContent="" OffContent="" MinWidth="0"
+                                              Margin="6,0,0,0" AutomationProperties.Name="Enabled" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+            <!-- Saved aquariums -->
+            <Grid Grid.Row="2" RowSpacing="8" Visibility="{x:Bind ViewModel.ShowSaved, Mode=OneWay}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListView ItemsSource="{x:Bind ViewModel.Saved}" SelectedItem="{x:Bind ViewModel.SelectedAquarium, Mode=TwoWay}"
+                          SelectionMode="Single" AutomationProperties.Name="Saved aquariums">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="core:SavedAquarium">
+                            <StackPanel Padding="2,4">
+                                <TextBlock Text="{x:Bind Name}" FontSize="15" FontFamily="{StaticResource NereaSerif}" />
+                                <TextBlock Text="{x:Bind WorldId}" FontSize="11" Opacity="0.55" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ComboBox Grid.Row="1" Header="Music" ItemsSource="{x:Bind ViewModel.PlaylistNames, Mode=OneWay}"
+                          SelectedIndex="{x:Bind ViewModel.PlaylistIndex, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+                <StackPanel Grid.Row="2" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Content="Save current…" Command="{x:Bind ViewModel.SaveNewCommand}" />
+                        <Button Content="Load" Command="{x:Bind ViewModel.LoadSelectedCommand}" />
+                        <Button Content="Update" Command="{x:Bind ViewModel.UpdateSelectedCommand}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Content="Rename…" Command="{x:Bind ViewModel.RenameSelectedCommand}" />
+                        <Button Content="Duplicate" Command="{x:Bind ViewModel.DuplicateSelectedCommand}" />
+                        <Button Content="Delete" Command="{x:Bind ViewModel.DeleteSelectedCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

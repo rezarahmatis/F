@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>NEREA symbol</title>
+  <defs>
+    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+      <rect width="256" height="256" fill="#fff"/>
+      <path d="M 30 132 C 76 100 104 160 150 126 S 214 116 236 124" fill="none" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+    </mask>
+  </defs>
+  <g fill="none" stroke="#c9d6df" stroke-linecap="round">
+    <path d="M 128 12 A 116 116 0 1 0 236 172" stroke-width="4" opacity="0.9"/>
+    <path d="M 128 34 A 94 94 0 0 1 222 128" stroke-width="3" opacity="0.5"/>
+    <path d="M 98 226 Q 128 214 158 226" stroke-width="4" opacity="0.8"/>
+  </g>
+  <path mask="url(#cut)" fill="#c9d6df" d="M 40 124 C 82 62 174 62 216 124 C 174 186 82 186 40 124 Z"/>
+</svg>

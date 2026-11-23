@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NEREA.Rendering</RootNamespace>
+    <AssemblyName>NEREA.Rendering</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Vortice.Direct3D12" Version="3.6.2" />
+    <PackageReference Include="Vortice.DXGI" Version="3.6.2" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NEREA.Core\NEREA.Core.csproj" />
+  </ItemGroup>
+
+  <!-- HLSL sources are embedded: the renderer can never start with a missing shader.
+       A copy in <app>\Assets\Shaders takes precedence (handy for shader development). -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\Assets\Shaders\*.hlsl;..\..\Assets\Shaders\*.hlsli" LogicalName="NEREA.Shaders.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

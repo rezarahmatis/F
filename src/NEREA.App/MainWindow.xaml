@@ -1,0 +1,206 @@
+<Window
+    x:Class="NEREA.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NEREA.App"
+    xmlns:views="using:NEREA.App.Views">
+
+    <Grid x:Name="Root" Background="Black" AllowDrop="True"
+          DragOver="Root_DragOver" Drop="Root_Drop"
+          PointerMoved="Root_PointerMoved" PointerPressed="Root_PointerPressed" PointerReleased="Root_PointerReleased"
+          PointerExited="Root_PointerExited" DoubleTapped="Root_DoubleTapped" RightTapped="Root_RightTapped"
+          KeyDown="Root_KeyDown">
+
+        <!-- Shown only when DirectX 12 is unavailable: a calm gradient in the world's colours -->
+        <Grid x:Name="FallbackBackground" Visibility="Collapsed" />
+
+        <!-- The living world (DirectX 12 swap chain) -->
+        <SwapChainPanel x:Name="WorldPanel" SizeChanged="WorldPanel_SizeChanged" CompositionScaleChanged="WorldPanel_CompositionScaleChanged" />
+
+        <!-- Title bar drag region (the window caption buttons float on the right) -->
+        <Grid x:Name="DragRegion" Height="44" VerticalAlignment="Top" Background="Transparent" />
+
+        <!-- The one and only brand mark: small, upper-left -->
+        <StackPanel x:Name="Brand" Orientation="Horizontal" Spacing="12" Margin="34,22,0,0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" Opacity="0.85">
+            <StackPanel.OpacityTransition>
+                <ScalarTransition Duration="0:0:1.2" />
+            </StackPanel.OpacityTransition>
+            <Image x:Name="BrandImage" Width="20" Height="20" VerticalAlignment="Center" />
+            <TextBlock Text="NEREA" FontFamily="{StaticResource NereaSerif}" FontSize="15" CharacterSpacing="520"
+                       Foreground="{StaticResource NereaSilverBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- World name: appears briefly when the world changes -->
+        <TextBlock x:Name="WorldToast" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0" IsHitTestVisible="False"
+                   FontFamily="{StaticResource NereaSerif}" FontSize="22" CharacterSpacing="360"
+                   Foreground="{StaticResource NereaSilverBrush}">
+            <TextBlock.OpacityTransition>
+                <ScalarTransition Duration="0:0:1.1" />
+            </TextBlock.OpacityTransition>
+        </TextBlock>
+
+        <!-- Library panels -->
+        <Grid x:Name="PanelHost" HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="440" Margin="0,56,24,132">
+            <views:LibraryPanel x:Name="LibraryView" Visibility="{x:Bind local:Fn.Vis(VM.LibraryOpen), Mode=OneWay}" />
+            <views:WorldsPanel Visibility="{x:Bind local:Fn.Vis(VM.WorldsOpen), Mode=OneWay}" />
+            <views:AquariumPanel Visibility="{x:Bind local:Fn.Vis(VM.AquariumOpen), Mode=OneWay}" />
+            <views:SettingsPanel Visibility="{x:Bind local:Fn.Vis(VM.SettingsOpen), Mode=OneWay}" />
+        </Grid>
+
+        <!-- Import indicator (subtle) -->
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="34,56,0,0" Spacing="4" Width="160"
+                    Visibility="{x:Bind VM.Library.IsImporting, Mode=OneWay}" IsHitTestVisible="False">
+            <ProgressBar Minimum="0" Maximum="1" Value="{x:Bind VM.Library.ImportProgress, Mode=OneWay}" Height="2" />
+            <TextBlock Text="{x:Bind VM.Library.ImportStatus, Mode=OneWay}" FontSize="11" Opacity="0.7" Foreground="{StaticResource NereaSilverBrush}" />
+        </StackPanel>
+
+        <!-- Messages -->
+        <Border x:Name="ToastBox" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,150" Opacity="0"
+                Background="#B3050F16" CornerRadius="14" Padding="16,8" IsHitTestVisible="False">
+            <Border.OpacityTransition>
+                <ScalarTransition Duration="0:0:0.6" />
+            </Border.OpacityTransition>
+            <TextBlock x:Name="ToastText" FontSize="13" Foreground="{StaticResource NereaSilverBrush}" TextWrapping="Wrap" MaxWidth="520" />
+        </Border>
+
+        <!-- Playback HUD: title, artist, hairline progress, quiet controls -->
+        <Grid x:Name="Hud" VerticalAlignment="Bottom" Margin="40,0,40,26">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" MaxWidth="580" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="1" Spacing="2">
+                <!-- Track info stays faintly visible when the controls fade -->
+                <Grid x:Name="HudInfo" ColumnSpacing="12" HorizontalAlignment="Center" Opacity="1">
+                    <Grid.OpacityTransition>
+                        <ScalarTransition Duration="0:0:1.0" />
+                    </Grid.OpacityTransition>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="38" Height="38" CornerRadius="4" VerticalAlignment="Center"
+                            Visibility="{x:Bind local:Fn.Vis(VM.Player.HasArt), Mode=OneWay}">
+                        <Image Source="{x:Bind VM.Player.Art, Mode=OneWay}" Stretch="UniformToFill" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{x:Bind VM.Player.TitleText, Mode=OneWay}" FontFamily="{StaticResource NereaSerif}" FontSize="17"
+                                   Foreground="{StaticResource NereaSilverBrush}" TextTrimming="CharacterEllipsis" MaxWidth="460" />
+                        <TextBlock Text="{x:Bind VM.Player.ArtistText, Mode=OneWay}" FontSize="12" Opacity="0.65"
+                                   Foreground="{StaticResource NereaSilverBrush}" TextTrimming="CharacterEllipsis" MaxWidth="460" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="HudControls" Opacity="1">
+                    <Grid.OpacityTransition>
+                        <ScalarTransition Duration="0:0:0.9" />
+                    </Grid.OpacityTransition>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="10" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind VM.Player.PositionText, Mode=OneWay}" FontSize="11" Opacity="0.6" VerticalAlignment="Center"
+                                   Foreground="{StaticResource NereaSilverBrush}" />
+                        <Slider x:Name="ProgressSlider" Grid.Column="1" Style="{StaticResource HudSlider}" Minimum="0"
+                                Maximum="{x:Bind VM.Player.DurationSeconds, Mode=OneWay}" Value="{x:Bind VM.Player.PositionSeconds, Mode=OneWay}"
+                                AutomationProperties.Name="Playback position" KeyDown="ProgressSlider_KeyDown" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind VM.Player.DurationText, Mode=OneWay}" FontSize="11" Opacity="0.6"
+                                   VerticalAlignment="Center" Foreground="{StaticResource NereaSilverBrush}" />
+                    </Grid>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,2,0,0">
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.ToggleShuffleCommand}" Content="&#xE8B1;"
+                                Opacity="{x:Bind local:Fn.Dim(VM.Player.Shuffle), Mode=OneWay}" ToolTipService.ToolTip="Shuffle"
+                                AutomationProperties.Name="Shuffle" />
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.PreviousCommand}" Content="&#xE892;"
+                                ToolTipService.ToolTip="Previous  (P)" AutomationProperties.Name="Previous" />
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.PlayPauseCommand}" Width="44" Height="44"
+                                FontSize="20" Content="{x:Bind local:Fn.PlayGlyph(VM.Player.IsPlaying), Mode=OneWay}"
+                                ToolTipService.ToolTip="Play / Pause  (Space)" AutomationProperties.Name="Play or pause" />
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.NextCommand}" Content="&#xE893;"
+                                ToolTipService.ToolTip="Next  (N)" AutomationProperties.Name="Next" />
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.CycleRepeatCommand}"
+                                Content="{x:Bind VM.Player.RepeatGlyph, Mode=OneWay}"
+                                Opacity="{x:Bind local:Fn.Dim(VM.Player.IsRepeating), Mode=OneWay}" ToolTipService.ToolTip="Repeat"
+                                AutomationProperties.Name="Repeat" />
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.ToggleCurrentFavoriteCommand}"
+                                Content="{x:Bind local:Fn.StarGlyph(VM.Player.IsFavorite), Mode=OneWay}" ToolTipService.ToolTip="Favorite"
+                                AutomationProperties.Name="Favorite" Margin="10,0,0,0" />
+                        <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.Player.ToggleMuteCommand}"
+                                Content="{x:Bind local:Fn.MuteGlyph(VM.Player.IsMuted, VM.Player.Volume), Mode=OneWay}"
+                                ToolTipService.ToolTip="Mute  (M)" AutomationProperties.Name="Mute" />
+                        <Slider Style="{StaticResource HudSlider}" Width="84" Minimum="0" Maximum="1" StepFrequency="0.01"
+                                Value="{x:Bind VM.Player.Volume, Mode=TwoWay}" AutomationProperties.Name="Volume" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Quiet tools in the corner -->
+            <StackPanel x:Name="HudTools" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="2" Opacity="1">
+                <StackPanel.OpacityTransition>
+                    <ScalarTransition Duration="0:0:0.9" />
+                </StackPanel.OpacityTransition>
+                <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.ToggleLibraryCommand}" Content="&#xE8F1;"
+                        ToolTipService.ToolTip="Library  (Ctrl+L)" AutomationProperties.Name="Library" />
+                <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.ToggleWorldsCommand}" Content="&#xE774;"
+                        ToolTipService.ToolTip="Worlds" AutomationProperties.Name="Worlds" />
+                <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.ToggleAquariumCommand}" Content="&#xE80F;"
+                        ToolTipService.ToolTip="Aquarium" AutomationProperties.Name="Aquarium" />
+                <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.ToggleAmbientCommand}" Content="&#xE708;"
+                        ToolTipService.ToolTip="Ambient mode  (A)" AutomationProperties.Name="Ambient mode" />
+                <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.ToggleCinematicCommand}" Content="&#xE714;"
+                        ToolTipService.ToolTip="Cinematic mode  (C)" AutomationProperties.Name="Cinematic mode" />
+                <Button Style="{StaticResource HudButton}" Click="Fullscreen_Click" Content="&#xE740;"
+                        ToolTipService.ToolTip="Full screen  (F11)" AutomationProperties.Name="Full screen" />
+                <Button Style="{StaticResource HudButton}" Command="{x:Bind VM.ToggleSettingsCommand}" Content="&#xE713;"
+                        ToolTipService.ToolTip="Settings" AutomationProperties.Name="Settings" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Startup: the symbol surfaces from dark water, then dissolves into the world -->
+        <Grid x:Name="Splash" Background="#FF050F16">
+            <Grid.OpacityTransition>
+                <ScalarTransition Duration="0:0:1.1" />
+            </Grid.OpacityTransition>
+            <Grid.Resources>
+                <Storyboard x:Name="SplashIn">
+                    <DoubleAnimation Storyboard.TargetName="SplashSymbol" Storyboard.TargetProperty="Opacity"
+                                     From="0" To="1" Duration="0:0:1.3" BeginTime="0:0:0.15">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut" />
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="SplashWord" Storyboard.TargetProperty="Opacity"
+                                     From="0" To="0.85" Duration="0:0:1.4" BeginTime="0:0:0.5" />
+                    <DoubleAnimation Storyboard.TargetName="SplashRippleScale" Storyboard.TargetProperty="ScaleX"
+                                     From="0.55" To="2.4" Duration="0:0:2.2" />
+                    <DoubleAnimation Storyboard.TargetName="SplashRippleScale" Storyboard.TargetProperty="ScaleY"
+                                     From="0.55" To="2.4" Duration="0:0:2.2" />
+                    <DoubleAnimation Storyboard.TargetName="SplashRipple" Storyboard.TargetProperty="Opacity"
+                                     From="0.45" To="0" Duration="0:0:2.2" />
+                </Storyboard>
+            </Grid.Resources>
+            <Ellipse x:Name="SplashRipple" Width="150" Height="150" Stroke="{StaticResource NereaSilverBrush}" StrokeThickness="1"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0" RenderTransformOrigin="0.5,0.5" Margin="0,0,0,26">
+                <Ellipse.RenderTransform>
+                    <ScaleTransform x:Name="SplashRippleScale" ScaleX="0.55" ScaleY="0.55" />
+                </Ellipse.RenderTransform>
+            </Ellipse>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="22">
+                <Image x:Name="SplashSymbol" Width="112" Height="112" Opacity="0" />
+                <TextBlock x:Name="SplashWord" Text="NEREA" FontFamily="{StaticResource NereaSerif}" FontSize="22" CharacterSpacing="900"
+                           Foreground="{StaticResource NereaSilverBrush}" HorizontalAlignment="Center" Opacity="0" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

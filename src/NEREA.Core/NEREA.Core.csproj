@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>NEREA.Core</RootNamespace>
+    <AssemblyName>NEREA.Core</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
+  <!-- Data-driven content is embedded so the app can never start with missing species/world definitions.
+       Users may extend the catalogue by dropping *.json files into %LOCALAPPDATA%\NEREA\Content. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\Assets\Fish\species.json" LogicalName="NEREA.Content.species.json" />
+    <EmbeddedResource Include="..\..\Assets\Worlds\worlds.json" LogicalName="NEREA.Content.worlds.json" />
+  </ItemGroup>
+
+</Project>

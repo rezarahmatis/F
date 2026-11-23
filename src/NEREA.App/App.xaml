@@ -1,0 +1,140 @@
+<Application
+    x:Class="NEREA.App.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- NEREA palette: deep water, silver light -->
+            <Color x:Key="NereaInk">#FF050F16</Color>
+            <Color x:Key="NereaSilver">#FFE6EEF3</Color>
+            <Color x:Key="NereaMist">#B3E6EEF3</Color>
+            <Color x:Key="NereaAccent">#FF7FC4D8</Color>
+            <SolidColorBrush x:Key="NereaInkBrush" Color="{StaticResource NereaInk}" />
+            <SolidColorBrush x:Key="NereaSilverBrush" Color="{StaticResource NereaSilver}" />
+            <SolidColorBrush x:Key="NereaMistBrush" Color="{StaticResource NereaMist}" />
+            <SolidColorBrush x:Key="NereaAccentBrush" Color="{StaticResource NereaAccent}" />
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <SolidColorBrush x:Key="NereaPanelBrush" Color="#EB0A141C" />
+                    <SolidColorBrush x:Key="NereaPanelEdgeBrush" Color="#33FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="NereaPanelBrush" Color="#F0F4F8FA" />
+                    <SolidColorBrush x:Key="NereaPanelEdgeBrush" Color="#33000000" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <FontFamily x:Key="NereaSerif">Cormorant Garamond, Georgia, Times New Roman</FontFamily>
+            <FontFamily x:Key="NereaIcons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+
+            <!-- Quiet, chrome-less icon button used by the HUD -->
+            <Style x:Key="HudButton" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource NereaSilverBrush}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="36" />
+                <Setter Property="Height" Value="36" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="FontFamily" Value="{StaticResource NereaIcons}" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="UseSystemFocusVisuals" Value="True" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Root" Background="Transparent" CornerRadius="18" Opacity="0.78">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="1" />
+                                                <Setter Target="Root.Background" Value="#22FFFFFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.6" />
+                                                <Setter Target="Root.Background" Value="#33FFFFFF" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="Root.Opacity" Value="0.3" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Foreground="{TemplateBinding Foreground}"
+                                                  FontFamily="{TemplateBinding FontFamily}"
+                                                  FontSize="{TemplateBinding FontSize}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
+            <!-- A hairline progress / volume slider: thin line, tiny thumb -->
+            <Style x:Key="HudSlider" TargetType="Slider">
+                <Setter Property="Background" Value="#38FFFFFF" />
+                <Setter Property="Foreground" Value="{StaticResource NereaSilverBrush}" />
+                <Setter Property="IsThumbToolTipEnabled" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Slider">
+                            <Grid x:Name="SliderContainer" Background="Transparent" MinHeight="22">
+                                <Grid x:Name="HorizontalTemplate" VerticalAlignment="Center" Height="22">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle x:Name="HorizontalTrackRect" Grid.ColumnSpan="3" Height="2" RadiusX="1" RadiusY="1"
+                                               Fill="{TemplateBinding Background}" VerticalAlignment="Center" />
+                                    <Rectangle x:Name="HorizontalDecreaseRect" Height="2" RadiusX="1" RadiusY="1"
+                                               Fill="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+                                    <Thumb x:Name="HorizontalThumb" Grid.Column="1" Width="10" Height="10" VerticalAlignment="Center"
+                                           AutomationProperties.AccessibilityView="Raw" FocusVisualMargin="-14">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="{StaticResource NereaSilverBrush}" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Grid>
+                                <Grid x:Name="VerticalTemplate" Visibility="Collapsed">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Rectangle x:Name="VerticalTrackRect" Grid.RowSpan="3" Width="2" Fill="{TemplateBinding Background}" />
+                                    <Rectangle x:Name="VerticalDecreaseRect" Grid.Row="2" Width="2" Fill="{TemplateBinding Foreground}" />
+                                    <Thumb x:Name="VerticalThumb" Grid.Row="1" Width="10" Height="10" />
+                                </Grid>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="PanelTitle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource NereaSerif}" />
+                <Setter Property="FontSize" Value="22" />
+                <Setter Property="CharacterSpacing" Value="120" />
+            </Style>
+            <Style x:Key="PanelSection" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="CharacterSpacing" Value="140" />
+                <Setter Property="Opacity" Value="0.6" />
+                <Setter Property="Margin" Value="0,18,0,6" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
